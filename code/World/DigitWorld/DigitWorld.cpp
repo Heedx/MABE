@@ -57,7 +57,7 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
     int readInt;
 	bool readBit;
 
-    std::cout << "reading file" << std::endl;
+    std::cout << "reading file: "<< fileName << std::endl;
     if (FILE.is_open()) {
         while (std::getline(FILE, rawLine)) {
             std::stringstream ss(rawLine);
@@ -78,7 +78,6 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
         std::cout << "\n ERROR: DigitWorld constructor, unable to open file: " << fileName << std::endl;
         exit(1);
     }
-    std::cout << numeralData.size() << std::endl;
     // End load
 
     inputNodesCount = retinaSensors;
@@ -136,9 +135,9 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
             for (int worldUpdate = 0; worldUpdate < worldUpdates; worldUpdate++) {
                 // load in inputs.
                 int nodeAssignmentCounter = 0;
-                for(int r = 0; r < retinaSensors; r++){
-                    int checkX = currentX + retinalOffsets[i].first;
-                    int checkY = currentY + retinalOffsets[i].second;
+                for(int s = 0; s < retinaSensors; s++){
+                    int checkX = currentX + retinalOffsets[s].first;
+                    int checkY = currentY + retinalOffsets[s].second;
                     if (checkX >= 0 && checkX < worldSize && checkY >= 0 && checkY < worldSize){
                         int checkInt = numeralData[numeralPick][(whichNumeral * worldSize * worldSize) + (checkY * worldSize) + (checkX)];
                         if(checkInt == 0) checkInt = -1;
@@ -158,33 +157,35 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
 
                 // prevent organism from walking out of the boundaries of the world.
                 if(currentX < 0) currentX = 0;
-                if(currentX >= worldSize) currentX = worldSize;
+                if(currentX >= worldSize) currentX = worldSize-1;
                 if(currentY < 0) currentY = 0;
-                if(currentY >= worldSize) currentY = worldSize;
+                if(currentY >= worldSize) currentY = worldSize-1;
 
                 if (brain->readOutput(12)) {
                     break; // if organism decides that it is done, then we stop.
                 }
 
-                if (debug && t == 0 && i == 0) {
+                // Output the world to debug.
+                // Only output first organism, and their last evaluation
+                if (debug && i == 0 && t == evaluationsPerGeneration-1) {
                     //display world state
                     std::vector<std::vector<int>>image;
                     image.resize(worldSize);
-                    for (int i = 0; i < worldSize; i++) {
-                        image[i].resize(worldSize);
+                    for (int x = 0; x < worldSize; x++) {
+                        image[x].resize(worldSize);
                     }
-                    
+                    std::cout << "Number in image: " << numeralPick << std::endl;
                     int index = whichNumeral * worldSize * worldSize;
                     for(int r = 0; r < worldSize; r++){
                         for(int c = 0; c < worldSize; c++) {
                             image[r][c] = numeralData[numeralPick][index + (r * worldSize) + c];
                         }
-                        std::cout << std::endl;
+                        // std::cout << std::endl;
                     }
 
                     for(int sensor = 0; sensor < retinaSensors; sensor++){
-                        int checkX = currentX + retinalOffsets[i].first;
-					    int checkY = currentY + retinalOffsets[i].second;
+                        int checkX = currentX + retinalOffsets[sensor].first;
+					    int checkY = currentY + retinalOffsets[sensor].second;
                         if (checkX >= 0 && checkX < worldSize && checkY >= 0 && checkY < worldSize) {  // if we are on the image
 						    image[checkY][checkX] = 9;
                         } 
@@ -201,6 +202,7 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                     for(int out = 0; out < outputNodesCount; out++){
                         std::cout << brain->readOutput(out) << " ";
                     }
+                    std::cout << std::endl;
                 }
 
                 // if (debug) {

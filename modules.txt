@@ -18,13 +18,13 @@
 
 % Brain
   - Wire
-  * CGP
-  - Markov
+  + CGP
+  * Markov
   - LSTM
   - BiLog
-  - ANN
-  - RNN
-  - Human
+  + ANN
+  + RNN
+  + Human
   - ConstantValues
 
 % Optimizer

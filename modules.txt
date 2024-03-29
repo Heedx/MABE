@@ -18,8 +18,8 @@
 
 % Brain
   - Wire
-  * CGP
-  - Markov
+  - CGP
+  * Markov
   - LSTM
   - BiLog
   - ANN

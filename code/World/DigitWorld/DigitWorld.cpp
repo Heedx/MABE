@@ -300,13 +300,14 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
             for (int i = 0; i < 10; i++) {
                 double c = (counts[i] == 0) ? 1.0 : (double)counts[i];
                 score += correct[i];
+                score -= incorrect[i];
                 // score += pow(   (((double) correct[i])/c) - (((double)incorrect[i]) / ((double)evaluationsPerGeneration - c))  ,   2   );
                 //score -= ((double) incsorrect[i]) / 10.0;
             }
 
-            if (score < 0.0) {
-                score = 0.0;
-            }
+            // if (score < 0.0) {
+            //     score = 0.0;
+            // }
 
             
         } //end of evaluation loop

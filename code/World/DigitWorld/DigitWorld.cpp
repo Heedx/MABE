@@ -13,8 +13,8 @@
 // this is how you setup a parameter in MABE, the function Parameters::register_parameter()takes the
 // name of the parameter (catagory-name), default value (which must conform with the type), a the useage message
 shared_ptr<ParameterLink<int>> DigitWorld::evaluationsPerGenerationPL =
-    Parameters::register_parameter("WORLD_Digit-evaluationsPerGeneration", 30,
-    "how many times should each organism be tested in each generation?");
+    Parameters::register_parameter("WORLD_Digit-evaluationsPerGeneration", 10,
+    "how many numbers should organism look at each gen?");
 shared_ptr<ParameterLink<int>> DigitWorld::defaultWorldUpdatesPL = 
     Parameters::register_parameter("WORLD_Digit-WorldUpdates", 50, 
                                 "number of world updates brain has to evaluate each value");
@@ -63,14 +63,12 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
             std::stringstream ss(rawLine);
             ss >> readInt;  // pull number from line (identifies what number is in image)
             for (int i = 0; i < worldSize; i++){
-                // for (int j = 0; j < worldSize; j++){
-                    std::getline(FILE, rawLine);  // get next line
-                    for (char c : rawLine) {
-                        if (isdigit(c)) {
-                            numeralData[readInt].push_back(c - '0'); // Convert char to int
-                        }
+                std::getline(FILE, rawLine);  // get next line
+                for (char c : rawLine) {
+                    if (isdigit(c)) {
+                        numeralData[readInt].push_back(c - '0'); // Convert char to int
                     }
-                // }
+                }
             }
             std::getline(FILE, rawLine); //skip blank line
         }
@@ -88,6 +86,12 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
     // popFileColumns tell MABE what data should be saved to pop.csv files
 	popFileColumns.clear();
     popFileColumns.push_back("score");
+    for (int i = 0; i < 10; i++) {
+		popFileColumns.push_back(to_string(i) + "-correct");
+		popFileColumns.push_back(to_string(i) + "-incorrect");
+	}
+	popFileColumns.push_back("totalCorrect");
+	popFileColumns.push_back("totalIncorrect");
 }
 
 // the evaluate function gets called every generation. evaluate should set values on organisms datamaps
@@ -122,10 +126,8 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
 
             // clear the brain - resets brain state including memory
             brain->resetBrain();
-            numeralPick = Random::getInt(1); // coinflip between 7 and 4
-
-            if(numeralPick == 0) numeralPick = 4; 
-            else if(numeralPick == 1) numeralPick = 7;
+            numeralPick = Random::getInt(9); // Select a number between 0-9
+            // std::cout << "Numeral Pick: " << std::to_string(numeralPick) << std::endl;
             whichNumeral = Random::getIndex(numeralData[numeralPick].size() / (8 * 8));
             counts[numeralPick]++;
 
@@ -306,12 +308,38 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 score = 0.0;
             }
 
+            
         } //end of evaluation loop
 
         // add score to organisms data
         // it can be expensive to access dataMap too often. also, here we want score to be the sum of the correct answers
+        // Save to pop file
+        int total_correct = 0;
+        int total_incorrect = 0;
+        string temp_name;
+        double val;
+
+        for (int i = 0; i < 10; i++) {
+            total_correct += correct[i];
+            total_incorrect += incorrect[i];
+
+            temp_name = to_string(i) + "-correct";  
+            (counts[i] > 0) ? val = (double) correct[i] / (double) counts[i] : val = 0;
+            org->dataMap.append(temp_name, val);
+            org->dataMap.setOutputBehavior(temp_name, DataMap::AVE);
+
+            temp_name = to_string(i) + "-incorrect";  
+            (counts[i] < evaluationsPerGeneration) ? val = (double) incorrect[i] / ((double) evaluationsPerGeneration - counts[i]) : val = 0;
+            org->dataMap.append(temp_name, val);
+            org->dataMap.setOutputBehavior(temp_name, DataMap::AVE);
+        }
+
+        org->dataMap.append("totalCorrect", total_correct);  
+        org->dataMap.append("totalIncorrect", total_incorrect); 
+        
         org->dataMap.append("score", score);
 
+        
     } // end of population loop
 }
 

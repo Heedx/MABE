@@ -110,6 +110,9 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
         int currentX, currentY; //for a 2x2 eye, top-left of sensor window is current position
         int movementX, movementY;
 
+        int stepsTaken = 0;
+        int stepBonus = 0;
+
         int numeralPick; // number being tested
         int whichNumeral; // which particular number from set is being tested
 
@@ -138,6 +141,8 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
             //orient the organism to face to the right.
             movementX = 1;
             movementY = 0;
+
+            stepsTaken = 0;
 
             for (int worldUpdate = 0; worldUpdate < worldUpdates; worldUpdate++) {
                 // load in inputs.
@@ -221,6 +226,9 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 if (moveForward > 0) {
                     currentX += movementX * stepSize;
                     currentY += movementY * stepSize;
+
+                    stepBonus += 1 / pow(2, stepsTaken);
+                    stepsTaken++;
                 }
 
                 // prevent organism from walking out of the boundaries of the world.
@@ -296,21 +304,23 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 }
             }
 
-            // Score the organism
-            for (int i = 0; i < 10; i++) {
-                double c = (counts[i] == 0) ? 1.0 : (double)counts[i];
-                score += correct[i];
-                score -= incorrect[i];
-                // score += pow(   (((double) correct[i])/c) - (((double)incorrect[i]) / ((double)evaluationsPerGeneration - c))  ,   2   );
-                //score -= ((double) incsorrect[i]) / 10.0;
-            }
-
             // if (score < 0.0) {
             //     score = 0.0;
             // }
 
             
         } //end of evaluation loop
+
+        // Score the organism
+        for (int i = 0; i < 10; i++) {
+            double c = (counts[i] == 0) ? 1.0 : (double)counts[i];
+            score += correct[i];
+            score -= incorrect[i] * 0.125;
+            // score += pow(   (((double) correct[i])/c) - (((double)incorrect[i]) / ((double)evaluationsPerGeneration - c))  ,   2   );
+            //score -= ((double) incsorrect[i]) / 10.0;
+        }
+
+        score += stepBonus;
 
         // add score to organisms data
         // it can be expensive to access dataMap too often. also, here we want score to be the sum of the correct answers

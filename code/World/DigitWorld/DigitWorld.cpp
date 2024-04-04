@@ -131,7 +131,7 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
             brain->resetBrain();
             numeralPick = Random::getInt(9); // Select a number between 0-9
             // std::cout << "Numeral Pick: " << std::to_string(numeralPick) << std::endl;
-            whichNumeral = Random::getIndex(numeralData[numeralPick].size() / (8 * 8));
+            whichNumeral = 0;//Random::getIndex(numeralData[numeralPick].size() / (8 * 8));
             counts[numeralPick]++;
 
             //place the organism in the top left of the world

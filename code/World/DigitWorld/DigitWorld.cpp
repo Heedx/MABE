@@ -79,9 +79,9 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
     // End load
 
     inputNodesCount = retinaSensors;
-    // Organism requires 13 nodes for output; turn(1), moveForward(1), 0-9(10), done(1)
+    // Organism requires 14 nodes for output; turnLeft(1), turnRight(1), moveForward(1), 0-9(10), done(1)
     // 0-9 outputs, though will only have 2 classes to recognize (4, 7)
-    outputNodesCount = 13;
+    outputNodesCount = 14;
 
     // popFileColumns tell MABE what data should be saved to pop.csv files
 	popFileColumns.clear();
@@ -164,10 +164,11 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 brain->update(); // Update the outputs using the inputs.
 
                 // Get the direction to turn.
-                int turnDirection = Trit(brain->readOutput(0));
+                int turnLeft = Trit(brain->readOutput(0));
+                int turnRight = Trit(brain->readOutput(1));
                 
                 // If turning right...
-                if (turnDirection > 0) {
+                if (turnLeft > 0 && turnRight <= 0) {
                     // ...and if facing down...
                     if (movementY == 1) {
                         // ...turn to face left.
@@ -194,7 +195,7 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                     }
                 }
                 // If turning left...
-                if (turnDirection < 0) {
+                if (turnRight > 0 && turnLeft <= 0) {
                     // ...and if facing down.
                     if (movementY == 1) {
                         // ...turn to face right.
@@ -222,7 +223,7 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 }
 
                 // move the organism
-                int moveForward = Trit(brain->readOutput(1));
+                int moveForward = Trit(brain->readOutput(2));
                 if (moveForward > 0) {
                     currentX += movementX * stepSize;
                     currentY += movementY * stepSize;
@@ -237,7 +238,7 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 if(currentY < 0) currentY = 0;
                 if(currentY >= worldSize) currentY = worldSize-1;
 
-                if (brain->readOutput(12)) {
+                if (false && brain->readOutput(13)) {
                     break; // if organism decides that it is done, then we stop.
                 }
 
@@ -296,10 +297,10 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
 
             // Determine if organism got it right.
             for (int i =0; i < 10; i++){
-                if (numeralPick == i && brain->readOutput(2 + i) > 0) {
+                if (numeralPick == i && brain->readOutput(3 + i) > 0) {
                     correct[i]++;
                 }
-                if (numeralPick != i && brain->readOutput(2 + i) > 0) {
+                if (numeralPick != i && brain->readOutput(3 + i) > 0) {
                     incorrect[i]++;
                 }
             }

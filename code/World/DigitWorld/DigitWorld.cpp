@@ -79,9 +79,9 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
     // End load
 
     inputNodesCount = retinaSensors;
-    // Organism requires 13 nodes for output; moveX(1), moveY(1), 0-9(10), done(1)
+    // Organism requires 14 nodes for output; turnLeft(1), turnRight(1), moveForward(1), 0-9(10), done(1)
     // 0-9 outputs, though will only have 2 classes to recognize (4, 7)
-    outputNodesCount = 13;
+    outputNodesCount = 14;
 
     // popFileColumns tell MABE what data should be saved to pop.csv files
 	popFileColumns.clear();
@@ -108,6 +108,10 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
 
         double score = 0;
         int currentX, currentY; //for a 2x2 eye, top-left of sensor window is current position
+        int movementX, movementY;
+
+        int stepsTaken = 0;
+        int stepBonus = 0;
 
         int numeralPick; // number being tested
         int whichNumeral; // which particular number from set is being tested
@@ -143,6 +147,12 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
             currentX = 0;
             currentY = 0;
 
+            //orient the organism to face to the right.
+            movementX = 1;
+            movementY = 0;
+
+            stepsTaken = 0;
+
             for (int worldUpdate = 0; worldUpdate < worldUpdates; worldUpdate++) {
                 // load in inputs.
                 int nodeAssignmentCounter = 0;
@@ -162,9 +172,74 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
 
                 brain->update(); // Update the outputs using the inputs.
 
+                // Get the direction to turn.
+                int turnLeft = Trit(brain->readOutput(0));
+                int turnRight = Trit(brain->readOutput(1));
+                
+                // If turning right...
+                if (turnLeft > 0 && turnRight <= 0) {
+                    // ...and if facing down...
+                    if (movementY == 1) {
+                        // ...turn to face left.
+                        movementX = -1;
+                        movementY = 0;
+                    }
+                    // ...else if facing left...
+                    else if (movementX == -1) {
+                        // ...turn to face up.
+                        movementX = 0;
+                        movementY = -1;
+                    }
+                    // ...else if facing up.
+                    else if (movementY == -1) {
+                        // ...turn to face right.
+                        movementX = 1;
+                        movementY = 0;
+                    }
+                    // ...else facing right.
+                    else {
+                        // ...turn to face down.
+                        movementX = 0;
+                        movementY = 1;
+                    }
+                }
+                // If turning left...
+                if (turnRight > 0 && turnLeft <= 0) {
+                    // ...and if facing down.
+                    if (movementY == 1) {
+                        // ...turn to face right.
+                        movementX = 1;
+                        movementY = 0;
+                    }
+                    // ...else if facing right.
+                    else if (movementX == 1) {
+                        // ...turn to face up.
+                        movementX = 0;
+                        movementY = -1;
+                    }
+                    // ...else if facing up.
+                    else if (movementY == -1) {
+                        // ...turn to face left.
+                        movementX = -1;
+                        movementY = 0;
+                    }
+                    // ...else facing left.
+                    else {
+                        // ...turn to face down.
+                        movementX = 0;
+                        movementY = 1;
+                    }
+                }
+
                 // move the organism
-                currentX += Trit(brain->readOutput(0)) * stepSize; // left and right
-                currentY += Trit(brain->readOutput(1)) * stepSize; // up and down
+                int moveForward = Trit(brain->readOutput(2));
+                if (moveForward > 0) {
+                    currentX += movementX * stepSize;
+                    currentY += movementY * stepSize;
+
+                    stepBonus += 1 / pow(2, stepsTaken);
+                    stepsTaken++;
+                }
 
                 // prevent organism from walking out of the boundaries of the world.
                 if(currentX < 0) currentX = 0;
@@ -172,8 +247,8 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 if(currentY < 0) currentY = 0;
                 if(currentY >= worldSize) currentY = worldSize-1;
 
-                if (brain->readOutput(12)) {
-                    break; // if organism decides that it is done, then we stop.
+                if (false && brain->readOutput(13)) {
+                   // break; // if organism decides that it is done, then we stop.
                 }
 
                 // Output the world to debug.
@@ -231,28 +306,31 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
 
             // Determine if organism got it right.
             for (int i =0; i < 10; i++){
-                if (numeralPick == i && brain->readOutput(2 + i) > 0) {
+                if (numeralPick == i && brain->readOutput(3 + i) > 0) {
                     correct[i]++;
                 }
-                if (numeralPick != i && brain->readOutput(2 + i) > 0) {
+                if (numeralPick != i && brain->readOutput(3 + i) > 0) {
                     incorrect[i]++;
                 }
             }
 
-            // Score the organism
-            for (int i = 0; i < 10; i++) {
-                double c = (counts[i] == 0) ? 1.0 : (double)counts[i];
-                
-                score += pow(   (((double) correct[i])/c) - (((double)incorrect[i]) / ((double)evaluationsPerGeneration - c))  ,   2   );
-                //score -= ((double) incorrect[i]) / 10.0;
-            }
-
-            if (score < 0.0) {
-                score = 0.0;
-            }
+            // if (score < 0.0) {
+            //     score = 0.0;
+            // }
 
             
         } //end of evaluation loop
+
+        // Score the organism
+        for (int i = 0; i < 10; i++) {
+            double c = (counts[i] == 0) ? 1.0 : (double)counts[i];
+            score += correct[i];
+            score -= incorrect[i] * 0.125;
+            // score += pow(   (((double) correct[i])/c) - (((double)incorrect[i]) / ((double)evaluationsPerGeneration - c))  ,   2   );
+            //score -= ((double) incsorrect[i]) / 10.0;
+        }
+
+        score += stepBonus;
 
         // add score to organisms data
         // it can be expensive to access dataMap too often. also, here we want score to be the sum of the correct answers

@@ -23,7 +23,7 @@ Parameters::register_parameter("WORLD_Digit-retinaType", 2,
                             "1 = center only, 2 = 2x2");
 shared_ptr<ParameterLink<string>> DigitWorld::numeralDataFileNamePL = 
 Parameters::register_parameter("WORLD_Digit-dataFileName", 
-(string) "../code/World/DigitWorld/ternaryMiniDigits.txt", "name of file with numeral data");
+(string) "./ternaryMiniDigits.txt", "name of file with numeral data");
 
 // the constructor gets called once when MABE starts up. use this to set things up
 DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
@@ -119,15 +119,24 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
         correct.resize(10);
         incorrect.resize(10);
 	    counts.resize(10);
-
+        
+        // clear the brain - resets brain state including memory
+        brain->resetBrain();
         // evaluate this organism some number of times based on evaluationsPerGeneration
         for (int t = 0; t < evaluationsPerGeneration; t++) {
-
-            // clear the brain - resets brain state including memory
-            brain->resetBrain();
-            numeralPick = Random::getInt(9); // Select a number between 0-9
-            // std::cout << "Numeral Pick: " << std::to_string(numeralPick) << std::endl;
+            bool goodNumber = false;
+            while (!goodNumber) {
+                goodNumber = true;
+                numeralPick = Random::getIndex(10);  // pick a number
+                for (int check = 0; check < 10; check++) {
+                    if (counts[check] < counts[numeralPick]) {
+                        goodNumber = false;
+                    }
+                }
+            }
+            // numeralPick = Random::getInt(9); // Select a number between 0-9
             whichNumeral = Random::getIndex(numeralData[numeralPick].size() / (8 * 8));
+
             counts[numeralPick]++;
 
             //place the organism in the top left of the world
@@ -235,7 +244,7 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
                 double c = (counts[i] == 0) ? 1.0 : (double)counts[i];
                 
                 score += pow(   (((double) correct[i])/c) - (((double)incorrect[i]) / ((double)evaluationsPerGeneration - c))  ,   2   );
-                //score -= ((double) incsorrect[i]) / 10.0;
+                //score -= ((double) incorrect[i]) / 10.0;
             }
 
             if (score < 0.0) {

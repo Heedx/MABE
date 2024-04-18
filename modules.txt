@@ -3,7 +3,7 @@
   * Digit
   - NBack
   - BlockCatch
-  + Test
+  - Test
   - PathFollow
   - TPM_GENERATOR
   - Berry

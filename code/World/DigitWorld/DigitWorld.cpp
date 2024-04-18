@@ -23,7 +23,7 @@ Parameters::register_parameter("WORLD_Digit-retinaType", 2,
                             "1 = center only, 2 = 2x2");
 shared_ptr<ParameterLink<string>> DigitWorld::numeralDataFileNamePL = 
 Parameters::register_parameter("WORLD_Digit-dataFileName", 
-(string) "../code/World/DigitWorld/ternaryMiniDigits.txt", "name of file with numeral data");
+(string) "./ternaryMiniDigits.txt", "name of file with numeral data");
 
 // the constructor gets called once when MABE starts up. use this to set things up
 DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
@@ -123,15 +123,27 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
         correct.resize(10);
         incorrect.resize(10);
 	    counts.resize(10);
-
+        
+        // clear the brain - resets brain state including memory
+        brain->resetBrain();
         // evaluate this organism some number of times based on evaluationsPerGeneration
         for (int t = 0; t < evaluationsPerGeneration; t++) {
-
-            // clear the brain - resets brain state including memory
-            brain->resetBrain();
+            // bool goodNumber = false;
+            // while (!goodNumber) {
+            //     goodNumber = true;
+            //     numeralPick = Random::getIndex(10);  // pick a number
+            //     for (int check = 0; check < 10; check++) {
+            //         if (counts[check] < counts[numeralPick]) {
+            //             goodNumber = false;
+            //         }
+            //     }
+            // }
+            
+            // whichNumeral = Random::getIndex(numeralData[numeralPick].size() / (8 * 8));
+        
             numeralPick = t % 10;//Random::getInt(9); // Select a number between 0-9
-            // std::cout << "Numeral Pick: " << std::to_string(numeralPick) << std::endl;
             whichNumeral = t/10;//Random::getIndex(numeralData[numeralPick].size() / (8 * 8));
+            brain->resetBrain();
             counts[numeralPick]++;
 
             //place the organism in the top left of the world

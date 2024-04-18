@@ -315,8 +315,8 @@ auto DigitWorld::evaluate(map<string, shared_ptr<Group>>& groups, int analyze, i
         // Score the organism
         for (int i = 0; i < 10; i++) {
             double c = (counts[i] == 0) ? 1.0 : (double)counts[i];
-            score += correct[i];
-            score -= incorrect[i] * 0.125;
+            score += 10 * correct[i];
+            score -= 10 * incorrect[i] * 0.125;
             // score += pow(   (((double) correct[i])/c) - (((double)incorrect[i]) / ((double)evaluationsPerGeneration - c))  ,   2   );
             //score -= ((double) incsorrect[i]) / 10.0;
         }

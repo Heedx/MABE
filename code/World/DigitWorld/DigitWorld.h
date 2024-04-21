@@ -47,6 +47,8 @@ public:
     
 	std::vector<std::vector<int>>numeralData; // [number][2D matrix stored in a vector]
 
+    std::vector<std::vector<bool>>exploredCells;
+
     std::vector<std::pair<int, int>> retinalOffsets = { {0, 0}, {1, 0}, {0, 1}, {1, 1} };
 	// retina is a list of offsets defining input sensor array to brain
 	// 0 1

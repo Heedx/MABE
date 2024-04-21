@@ -15,6 +15,8 @@
 #include <memory> // shared_ptr
 #include <map>
 
+#include "../../Analyze/brainTools.h"
+
 using std::shared_ptr;
 using std::string;
 using std::map;
@@ -54,6 +56,7 @@ public:
     DigitWorld(shared_ptr<ParametersTable> PT);
     virtual ~DigitWorld() = default;
 
+    virtual double evaluateOrganism(std::shared_ptr<Organism> /*org*/, int /*analyze*/, int /*visualize*/, int /*debug*/, bool /*isFirst*/, bool /*calcRepresentation*/);
     virtual auto evaluate(map<string, shared_ptr<Group>>& /*groups*/, int /*analyze*/, int /*visualize*/, int /*debug*/) -> void override;
 
     virtual auto requiredGroups() -> unordered_map<string,unordered_set<string>> override;

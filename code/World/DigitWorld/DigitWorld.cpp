@@ -177,11 +177,11 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
             worldStateSet.push_back({ numeralPick });
 
             // Get the direction to turn.
-            int turnLeft = Trit(brain->readOutput(0));
-            int turnRight = Trit(brain->readOutput(1));
+            int turnLeft = brain->readOutput(0) > 0.5;
+            int turnRight = brain->readOutput(1) > 0.5;
             
             // If turning right...
-            if (turnLeft > 0 && turnRight <= 0) {
+            if (turnLeft && !turnRight) {
                 // ...and if facing down...
                 if (movementY == 1) {
                     // ...turn to face left.
@@ -208,7 +208,7 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
                 }
             }
             // If turning left...
-            if (turnRight > 0 && turnLeft <= 0) {
+            if (turnRight && !turnLeft) {
                 // ...and if facing down.
                 if (movementY == 1) {
                     // ...turn to face right.
@@ -236,8 +236,8 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
             }
 
             // move the organism
-            int moveForward = Trit(brain->readOutput(2));
-            if (moveForward > 0) {
+            int moveForward = brain->readOutput(2) > 0.5;
+            if (moveForward) {
                 currentX += movementX * stepSize;
                 currentY += movementY * stepSize;
 
@@ -255,7 +255,7 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
                 }
             }
 
-            if (allowDoneBit && brain->readOutput(13)) {
+            if (allowDoneBit && brain->readOutput(13) > 0.5) {
                 break; // if organism decides that it is done, then we stop.
             }
 
@@ -312,23 +312,35 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
             
         } // end of world loop
 
+        bool guessedCorrectly = false; // Defaults to false.
+        int guessesMade = 0;
+
         // Determine if organism got it right.
         for (int i =0; i < 10; i++){
-            if (numeralPick == i && brain->readOutput(3 + i) > 0) {
+            if (numeralPick == i && brain->readOutput(3 + i) > 0.5) {
                 correct[i]++;
+                guessedCorrectly = true;
+                guessesMade++;
             }
-            if (numeralPick != i && brain->readOutput(3 + i) > 0) {
+            if (numeralPick != i && brain->readOutput(3 + i) > 0.5) {
                 incorrect[i]++;
+                guessesMade++;
             }
         }
 
+        // If it gets it right, the base score is 10.
+        // But the actual score is divided by the number of guesses it made.
+        if (guessesMade > 0 && guessedCorrectly) {
+            score += 10 / guessesMade;
+        }    
+
     } //end of evaluation loop
 
-    // Score the organism
-    for (int i = 0; i < 10; i++) {
-        score += 10 * correct[i];
-        score -= 10 * incorrect[i] * (1 / 9);
-    }
+    // // Score the organism
+    // for (int i = 0; i < 10; i++) {
+    //     score += 10 * correct[i];
+    //     score -= 10 * incorrect[i] * (1 / 9);
+    // }
 
     score += explorationBonus;
 

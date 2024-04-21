@@ -33,6 +33,7 @@ public:
     static shared_ptr<ParameterLink<int>> defaultWorldUpdatesPL;
 	static shared_ptr<ParameterLink<int>> defaultRetinaTypePL;
 	static shared_ptr<ParameterLink<string>> numeralDataFileNamePL;
+    static shared_ptr<ParameterLink<bool>> allowDoneBitPL;
     
     // a local variable used for faster access to the ParameterLink value
     int evaluationsPerGeneration;
@@ -44,6 +45,7 @@ public:
     int worldSize; //width and height because square.
     int retinaType;
     string numeralDataFileName;
+    bool allowDoneBit;
     
 	std::vector<std::vector<int>>numeralData; // [number][2D matrix stored in a vector]
 

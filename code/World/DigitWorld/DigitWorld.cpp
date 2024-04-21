@@ -25,6 +25,9 @@ shared_ptr<ParameterLink<string>> DigitWorld::numeralDataFileNamePL =
 Parameters::register_parameter("WORLD_Digit-dataFileName", 
 (string) "./ternaryMiniDigits.txt", "name of file with numeral data");
 
+shared_ptr<ParameterLink<bool>> DigitWorld::allowDoneBitPL = 
+Parameters::register_parameter("WORLD_Digit-allowDoneBit", true, "allow the brain to decide when its done");
+
 // the constructor gets called once when MABE starts up. use this to set things up
 DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
     //localize a parameter value for faster access
@@ -45,6 +48,7 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
 		std::cout << "\nIn DigitWorld constructor, undefined retinaType" << retinaType << "\nExiting!\n" << std::endl;
 		exit(1);
 	}
+    allowDoneBit = allowDoneBitPL->get(PT);
     
     // Load in 8x8 numbers
     worldSize = 8;
@@ -251,8 +255,8 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
                 }
             }
 
-            if (false && brain->readOutput(13)) {
-                // break; // if organism decides that it is done, then we stop.
+            if (allowDoneBit && brain->readOutput(13)) {
+                break; // if organism decides that it is done, then we stop.
             }
 
             // Output the world to debug.

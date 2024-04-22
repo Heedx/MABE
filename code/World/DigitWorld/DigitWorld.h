@@ -51,10 +51,15 @@ public:
 
     std::vector<std::vector<bool>>exploredCells;
 
-    std::vector<std::pair<int, int>> retinalOffsets = { {0, 0}, {1, 0}, {0, 1}, {1, 1} };
+    std::vector<std::pair<int, int>> retinalOffsets = {{0, 0},{1, 0},{0, 1},{1, 1}, //2x2
+                                                        {0, 2},{1, 2},{2, 2},{2,1},{2,0}, //3x3
+                                                        {0,3},{1, 3},{2, 3},{3, 3},{3,2},{3,1},{3,0} //4x4
+                                                    };
 	// retina is a list of offsets defining input sensor array to brain
-	// 0 1
-    // 2 3
+	//  0   1    8   15
+    //  2   3    7   14
+    //  4   5    6   13
+    //  9  10   11   12
     int retinaSensors, stepSize;
 
     DigitWorld(shared_ptr<ParametersTable> PT);

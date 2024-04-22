@@ -9,7 +9,7 @@ REPS = 101 103
 
 # Settings to override the config files, but will not be varied
 # Multiple CONSTANT definitions will be added together.
-#CONSTANT = GLOBAL-updates 10  WORLD-worldType Berry
+CONSTANT = GLOBAL-updates 10000
 
 # VAR = [SHORT NAME]	[REAL NAME]	[conditon1,condition2,etc.]
 # Short name is used in this file, and also determines output directory names

@@ -20,7 +20,7 @@ shared_ptr<ParameterLink<int>> DigitWorld::defaultWorldUpdatesPL =
                                 "number of world updates brain has to evaluate each value");
 shared_ptr<ParameterLink<int>> DigitWorld::defaultRetinaTypePL = 
 Parameters::register_parameter("WORLD_Digit-retinaType", 2, 
-                            "1 = center only, 2 = 2x2");
+                            "1 = center only, 2 = 2x2, 3 = 3x3, 4 = 4x4");
 shared_ptr<ParameterLink<string>> DigitWorld::numeralDataFileNamePL = 
 Parameters::register_parameter("WORLD_Digit-dataFileName", 
 (string) "./ternaryMiniDigits.txt", "name of file with numeral data");
@@ -33,7 +33,7 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
     //localize a parameter value for faster access
     evaluationsPerGeneration = evaluationsPerGenerationPL->get(PT);
     worldUpdates = defaultWorldUpdatesPL->get(PT); 
-    retinaType = defaultRetinaTypePL->get(PT); // "1 = center only, 2 = 2x2"
+    retinaType = defaultRetinaTypePL->get(PT); 
     numeralDataFileName = numeralDataFileNamePL->get(PT);
     switch (retinaType) {
 	case 1:// center only
@@ -44,6 +44,14 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
 		retinaSensors = 4;
 		stepSize = 1;
 		break;
+    case 3:// 3x3 sensor
+        retinaSensors = 9;
+        stepSize = 1;
+        break;
+    case 4:// 4x4 sensor
+        retinaSensors = 16;
+        stepSize = 1;
+        break;
 	default:
 		std::cout << "\nIn DigitWorld constructor, undefined retinaType" << retinaType << "\nExiting!\n" << std::endl;
 		exit(1);

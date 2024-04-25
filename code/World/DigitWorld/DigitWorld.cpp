@@ -110,6 +110,9 @@ DigitWorld::DigitWorld(shared_ptr<ParametersTable> PT) : AbstractWorld(PT) {
     popFileColumns.push_back("R");
     popFileColumns.push_back("earlyR25");
     popFileColumns.push_back("lateR25");
+    popFileColumns.push_back("rawR");
+    popFileColumns.push_back("earlyRawR25");
+    popFileColumns.push_back("lateRawR25");
 }
 
 double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, int visualize, int debug, bool isFirst, bool calcRepresentation) {
@@ -264,7 +267,7 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
             }
 
             if (allowDoneBit && brain->readOutput(13) > 0.5) {
-                break; // if organism decides that it is done, then we stop.
+                //break; // if organism decides that it is done, then we stop.
             }
 
             // Output the world to debug.
@@ -368,23 +371,58 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
         auto brainHiddenStateTimeSeries = TS::remapToIntTimeSeries(brain->getHiddenStates(), remapRule);
         auto brainAfterStateSet = TS::trimTimeSeries(brainHiddenStateTimeSeries, TS::Position::FIRST, lifeTimes);
 
+        // int bufferSize = 0;
+        // for (int i = 0; i < worldStateSet.size(); i++) {
+        //     auto state = worldStateSet[i];
+        //     for (int j = 0; j < state.size(); j++) {
+        //         bufferSize++;
+        //         auto statePart = state[j];
+        //         // std::cout << statePart << " ";
+        //     }
+        // }
+        // for (int i = 0; i < brainAfterStateSet.size(); i++) {
+        //     auto state = brainAfterStateSet[i];
+        //     for (int j = 0; j < state.size(); j++) {
+        //         bufferSize++;
+        //         auto statePart = state[j];
+        //         std::cout << statePart << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+        // for (int i = 0; i < inputStateSet.size(); i++) {
+        //     auto state = inputStateSet[i];
+        //     for (int j = 0; j < state.size(); j++) {
+        //         bufferSize++;
+        //         auto statePart = state[j];
+        //         std::cout << statePart << " ";
+        //     }
+        //     std::cout << std::endl;
+        // }
+        // std::cout << bufferSize << std::endl;
+
         double R = ENT::ConditionalMutualEntropy(worldStateSet, brainAfterStateSet, inputStateSet);
-        
+        double rawR = ENT::MutualEntropy(worldStateSet, brainAfterStateSet);
+
         auto earlyWorldStateSet25 = TS::trimTimeSeries(worldStateSet, {0, .25}, lifeTimes);
         auto earlyBrainAfterStateSet25 = TS::trimTimeSeries(brainAfterStateSet, {0, 0.25}, lifeTimes);
         auto earlyInputStateSet25 = TS::trimTimeSeries(inputStateSet, {0, 0.25}, lifeTimes);
 
         double earlyR25 = ENT::ConditionalMutualEntropy(earlyWorldStateSet25, earlyBrainAfterStateSet25, earlyInputStateSet25);
+        double earlyRawR25 = ENT::MutualEntropy(earlyWorldStateSet25, earlyBrainAfterStateSet25);
 
         auto lateWorldStateSet25 = TS::trimTimeSeries(worldStateSet, {0.75, 1}, lifeTimes);
         auto lateBrainAfterStateSet25 = TS::trimTimeSeries(brainAfterStateSet, {0.75, 1}, lifeTimes);
         auto lateInputStateSet25 = TS::trimTimeSeries(inputStateSet, {0.75, 1}, lifeTimes);
 
         double lateR25 = ENT::ConditionalMutualEntropy(lateWorldStateSet25, lateBrainAfterStateSet25, lateInputStateSet25);
+        double lateRawR25 = ENT::MutualEntropy(lateWorldStateSet25, lateBrainAfterStateSet25);
 
         org->dataMap.set("R", R);
         org->dataMap.set("earlyR25", earlyR25);
         org->dataMap.set("lateR25", lateR25);
+        org->dataMap.set("rawR", rawR);
+        org->dataMap.set("earlyRawR25", earlyRawR25);
+        org->dataMap.set("lateRawR25", lateRawR25);
     } else {
         for (int i = 0; i < 10; i++) {
             total_correct += correct[i];
@@ -408,6 +446,9 @@ double DigitWorld::evaluateOrganism(std::shared_ptr<Organism> org, int analyze, 
         org->dataMap.append("R", 0.0);
         org->dataMap.append("earlyR25", 0.0);
         org->dataMap.append("lateR25", 0.0);
+        org->dataMap.append("rawR", 0.0);
+        org->dataMap.append("earlyRawR25", 0.0);
+        org->dataMap.append("lateRawR25", 0.0);
     }
 
     return score;

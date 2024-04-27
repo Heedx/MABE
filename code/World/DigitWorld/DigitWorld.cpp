@@ -8,6 +8,12 @@
 //     to view the full license, visit:
 //         github.com/Hintzelab/MABE/wiki/License
 
+/**
+ * 
+ * DigitWorld
+ * Written by Daniel Nguyen and Partick Ancel
+ * 
+*/
 #include "DigitWorld.h"
 
 // this is how you setup a parameter in MABE, the function Parameters::register_parameter()takes the

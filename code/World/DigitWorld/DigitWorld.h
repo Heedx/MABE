@@ -8,6 +8,12 @@
 //     to view the full license, visit:
 //         github.com/Hintzelab/MABE/wiki/License
 
+/**
+ * 
+ * DigitWorld
+ * Written by Daniel Nguyen and Partick Ancel
+ * 
+*/
 #pragma once    // directive to insure that this .h file is only included one time
 
 #include <World/AbstractWorld.h> // AbstractWorld defines all the basic function templates for worlds
@@ -23,6 +29,7 @@ using std::map;
 using std::unordered_map;
 using std::unordered_set;
 using std::to_string;
+
 
 class DigitWorld : public AbstractWorld {
 private:
